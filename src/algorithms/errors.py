@@ -1,0 +1,2 @@
+class InconsistentLengthException(Exception):
+    pass
