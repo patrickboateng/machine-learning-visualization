@@ -14,12 +14,21 @@ def mean_squared_error(X, y, theta, m=None):
 
     predictions = (X @ theta).transpose().flatten()  # m
 
-    error = (
-        np.sum([math.pow(actual - guess, 2) for guess, actual in zip(predictions, y)])
-        / m
-    )
+    if m is None:
+        m = len(predictions)
 
-    return np.round(error, decimals=4)
+    sum_error = 0
+
+    for actual, guess in zip(y, predictions):
+        error = actual - guess
+        try:
+            error_squared = math.pow(error, 2)
+        except OverflowError:
+            print(error)
+            exit()
+        sum_error += error_squared
+
+    return sum_error / m
 
 
 def root_mean_squared_error(X, y, theta, m=None):
