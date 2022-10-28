@@ -4,11 +4,10 @@ from matplotlib.animation import FuncAnimation
 
 from algorithms.cost_functions import (
     mean_squared_error,
-    root_mean_squared_error,
     mean_absolute_error,
 )
 
-from algorithms.gradient_descent import batch_gradient_descent, hypothesis
+from algorithms.gradient_descent import BatchGradientDescent
 
 
 if __name__ == "__main__":
@@ -35,9 +34,12 @@ if __name__ == "__main__":
 
     # theta = np.zeros((n, 1))
 
-    theta, _ = batch_gradient_descent(X, y, cost_function="mse")
+    bgd = BatchGradientDescent(X, y, feature_scaler="min_max")
+    theta, history = bgd.run()
     print(theta)
+    i = bgd.transform(np.array([[40]])).flatten()[0]
 
+    print(bgd.hypothesis(np.array([[1, i]]), theta))
     # plt.plot(bgdinfo.num_of_epochs, bgdinfo.cost_history)
 
     # print(mean_squared_error(X, y, theta))
