@@ -2,173 +2,144 @@ import copy
 import math
 
 import numpy as np
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 from algorithms.cost_functions import (
     mean_absolute_error,
     mean_squared_error,
-    root_mean_squared_error,
 )
 
-cost_functions = {
-    "mse": mean_squared_error,
-    "rmse": root_mean_squared_error,
-    "mae": mean_absolute_error,
-}
 
+class BatchGradientDescent:
 
-def hypothesis(x, theta):
-    """Calculates the prediction of the model
+    cost_functions = {
+        "mse": mean_squared_error,
+        "mae": mean_absolute_error,
+    }
 
-    Args:
-        x: input parameters
-        theta: weights of the model
-    """
+    feature_scalers = {"std_scaler": StandardScaler, "min_max": MinMaxScaler}
 
-    pred = np.round((x @ theta).flatten(), decimals=4)[0]
-    return pred
+    def __init__(
+        self,
+        X,
+        y,
+        theta=None,
+        alpha=0.01,
+        num_iters=3500,
+        cost_func="rmse",
+        normalize: bool = True,
+        feature_scaler: str = "std_scaler",
+    ):
+        self.initial_theta = theta
+        self.X = X
+        self.y = y
+        self.alpha = 0.01
+        self.num_iters = num_iters
+        self.feature_scaler = feature_scaler
+        self.total_training_egs = len(self.y)
 
+        # TODO Check X and y dimensions
 
-def error(pred, y_i, X_ij):
-    """Calculates the error of a single feature
+        if normalize:
+            self.fit()
+            self.X = self.transform(self.X)
 
-    Args:
-        pred (float): predicted value using `hypothesis`
-        y_i (float): the target variable for the ith training eg.
-        X_ij (float): the feature value j in the ith training eg.
+        coefficient_of_constant = np.ones(shape=(self.total_training_egs, 1))
+        self.X = np.hstack(tup=(coefficient_of_constant, self.X))
 
-    Returns:
-        float: error
-    """
-    return (pred - y_i) * X_ij
+        try:
+            self.compute_cost = self.cost_functions[cost_func]
+        except KeyError:
+            self.compute_cost = self.cost_functions["mse"]
 
+    @property
+    def X(self):
+        return self._X
 
-def gradient(X, y, theta, total_training_egs, j):
-    """Calculates the gradient of the cost function
+    @X.setter
+    def X(self, val):
+        if val.ndim == 1:
+            val = val.reshape(-1, 1)
 
-    Args:
-        X (numpy.array): input variable/features
-        y (numpy.array): output variable/target
-        theta (numpy.array): weights of the model
-        total_training_egs (int): number of training examples
-        j (int): the current parameter
+        self._X = val
 
-    Returns:
-        float: summation of the total error calculated using theta
-    """
+        if self.initial_theta is None:
+            _, self.num_of_features = self._X.shape
+            self.num_of_features += 1
+            self.initial_theta = np.zeros(shape=(self.num_of_features, 1))
 
-    sum_error = 0
+    def fit(self):
+        self.scaler = self.feature_scalers[self.feature_scaler]()
+        self.scaler.fit(self.X)
 
-    for i in range(total_training_egs):
-        pred = hypothesis(X[i], theta)
-        sum_error += error(pred, y[i], X[i][j])
+    def transform(self, X):
+        return self.scaler.transform(X)
 
-    return sum_error
+    @staticmethod
+    def hypothesis(x, theta) -> float:
+        """Calculates the prediction of the model
 
+        Args:
+            x: input parameters
+            theta: weights of the model
+        """
 
-def transform_X(X, total_training_egs=None, normalize: bool = True):
-    """Transforms the input variable
+        pred = np.round((x @ theta).flatten(), decimals=4)[0]
+        return pred
 
-    Args:
-        X: input variable
-        total_training_egs: number of training examples
-        normalize (bool): checks whether the input variable should be
-                          transformed or not
-    """
+    @staticmethod
+    def error(pred, y_i, X_ij):
+        """Calculates the error of a single feature
 
-    if X.ndim == 1:
-        X = X.reshape(-1, 1)  # convert X to 2 dimensions
+        Args:
+            pred (float): predicted value using `hypothesis`
+            y_i (float): the target variable for the ith training eg.
+            X_ij (float): the feature value j in the ith training eg.
 
-    if normalize:
-        scaler = StandardScaler()
-        scaler.fit(X)
-        print(scaler.mean_)
-        print(scaler.var_)
-        X = scaler.transform(X)
+        Returns:
+            float: error
+        """
+        return (pred - y_i) * X_ij
 
-    coefficient_of_constant = np.ones(shape=(total_training_egs, 1))
-    X = np.hstack(tup=(coefficient_of_constant, X))
+    def gradient(self, theta, j) -> float:
+        """Calculates the gradient of the cost function
 
-    return X
+        Args:
+            theta: weights of the model
+            j (int): the current parameter
 
+        Returns:
+            float: summation of the total error calculated using theta
+        """
 
-def _select_cost_function(cost_function):
-    if cost_function is None:
-        print("Using default cost function (RMSE)")
-        compute_cost = cost_functions["rmse"]
-    else:
-        if isinstance(cost_function, str):
-            try:
-                compute_cost = cost_functions[cost_function]
-            except KeyError:
-                print("Cost function not available using Root Mean Squared Error")
-                compute_cost = cost_functions["rmse"]
+        sum_error = 0
 
-        else:
-            compute_cost = cost_function
+        for i in range(self.total_training_egs):
+            pred = self.hypothesis(self.X[i], theta)
+            sum_error += self.error(pred, self.y[i], self.X[i][j])
 
-    return compute_cost
+        return sum_error
 
+    def run(self):
+        history = {}
+        theta = copy.deepcopy(self.initial_theta)
+        predictions = (self.X @ theta).transpose().flatten()  # m
+        loss = self.compute_cost(predictions, self.y, self.total_training_egs)
+        step_size = self.alpha / self.total_training_egs
 
-def batch_gradient_descent(
-    X,
-    y,
-    theta=None,
-    *,
-    alpha: float = 0.01,
-    num_iters: int = 3500,
-    cost_function=None,
-    normalize: bool = True
-):
-    """Batch Gradient Descent implementation in python.
+        for epoch in range(self.num_iters):
 
-    Args:
-        X (numpy.array): input variable/features
-        y (numpy.array): output variable/target
-        theta (numpy.array): initial weights/parameters
-        alpha (float): learning rate
-        num_iters (int): number of iteration taken to run gradient descent
-        cost_function (str | callable): loss function used in evaluating the model
+            temp_theta = copy.deepcopy(theta)
 
-    Returns:
-        numpy.array: weights of the model
+            for j in range(self.num_of_features):
+                temp_theta[j] = temp_theta[j] - (step_size * self.gradient(theta, j))
 
-    Raises:
+            theta = copy.deepcopy(temp_theta)
 
-    """
+            history[epoch] = loss
 
-    history = {}
+            predictions = (self.X @ theta).transpose().flatten()  # m
 
-    total_training_egs = len(y)
+            loss = self.compute_cost(predictions, self.y, self.total_training_egs)
 
-    X = transform_X(X, total_training_egs=total_training_egs, normalize=normalize)
-
-    if theta is None:
-        _, n = X.shape
-
-        theta = np.zeros(shape=(n, 1))
-
-    compute_cost = _select_cost_function(cost_function)
-
-    loss = compute_cost(X, y, theta, total_training_egs)
-
-    step_size = alpha / total_training_egs
-
-    num_of_features, _ = theta.shape
-
-    for epoch in range(num_iters):
-
-        temp_theta = copy.deepcopy(theta)
-
-        for j in range(num_of_features):
-            temp_theta[j] = temp_theta[j] - (
-                step_size * gradient(X, y, theta, total_training_egs, j)
-            )
-
-        theta = copy.deepcopy(temp_theta)
-
-        history[epoch] = loss
-
-        loss = compute_cost(X, y, theta, total_training_egs)
-
-    return theta, history
+        return theta, history
