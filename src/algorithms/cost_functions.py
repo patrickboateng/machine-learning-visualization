@@ -1,37 +1,80 @@
+"""Implementation of various cost functions.
+
+The module contains the following functions:
+
+- `mean_absolute_error(y_pred, y_true, total_training_egs)` - Calculates and returns the mean absolute error of the predicted and actual values.
+
+- `mean_squared_error(y_pred, y_true, total_training_egs)` - Calculates and returns the mean squared error of the predicted and actual values.
+
+- `root_mean_squared_error(y_pred, y_true, total_training_egs)` - Calculates and returns the root mean squared error of the predicted and actual values
+
+"""
+
 import math
 
-import numpy as np
+
+def mean_absolute_error(y_pred, y_true, total_training_egs=None) -> float:
+    """Calculates the mean absolute error.
+
+    Args:
+        y_pred: the predicted values from the model.
+        y_true: the actual values from the datasets.
+        total_training_egs: the number of training examples in the datasets.
+
+    Returns:
+        float: mean absolute error.
+
+    """
+
+    if total_training_egs is None:
+        total_training_egs = len(y_pred)
+
+    sum_abs_error = 0
+
+    for actual, guess in zip(y_pred, y_true):
+        abs_error = abs(actual - guess)
+        sum_abs_error += abs_error
+
+    return sum_abs_error / total_training_egs
 
 
-def mean_absolute_error(X, y, theta, m=None):
+def mean_squared_error(y_pred, y_true, total_training_egs=None) -> float:
+    """Calculates the mean squared error.
 
-    predictions = (X @ theta).transpose().flatten()  # m
+    Args:
+        y_pred: the predicted values from the model.
+        y_true: the actual values from the datasets.
+        total_training_egs: the number of training examples in the datasets.
 
-    return np.sum([abs(actual - guess) for guess, actual in zip(predictions, y)]) / m
+    Returns:
+        float: mean squared error.
 
+    """
 
-def mean_squared_error(X, y, theta, m=None):
+    if total_training_egs is None:
+        total_training_egs = len(y_pred)
 
-    predictions = (X @ theta).transpose().flatten()  # m
+    sum_squared_error = 0
 
-    if m is None:
-        m = len(predictions)
+    for actual, guess in zip(y_true, y_pred):
+        error_squared = math.pow((actual - guess), 2)
+        sum_squared_error += error_squared
 
-    sum_error = 0
-
-    for actual, guess in zip(y, predictions):
-        error = actual - guess
-        try:
-            error_squared = math.pow(error, 2)
-        except OverflowError:
-            print(error)
-            exit()
-        sum_error += error_squared
-
-    return sum_error / m
+    return sum_squared_error / total_training_egs
 
 
-def root_mean_squared_error(X, y, theta, m=None):
-    error = math.sqrt(mean_squared_error(X, y, theta, m=m))
+def root_mean_squared_error(y_pred, y_true, total_training_egs=None) -> float:
+    """Calculates the root mean squared error.
 
-    return np.round(error, decimals=4)
+    Args:
+        y_pred: the predicted values from the model.
+        y_true: the actual values from the datasets.
+        total_training_egs: the number of training examples in the datasets.
+
+    Returns:
+        float: root mean squared error.
+
+    """
+
+    avg_squared_error = mean_squared_error(y_pred, y_true, total_training_egs)
+    return math.sqrt(avg_squared_error)
