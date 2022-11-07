@@ -9,11 +9,11 @@ if __name__ == "__main__":
     # X = df[:, 0]
     # y = df[:, 1]
 
-    # X = np.array([1, 2, 3, 4])
-    # y = np.array([1.5, 1.6, 2.1, 3.0])
+    X = np.array([1, 2, 3, 4])
+    y = np.array([1.5, 1.6, 2.1, 3.0])
 
-    X = np.array([1, 2, 3, 4, 5])
-    y = np.array([4.2, 3.5, 3.0, 3.4, 2.0])
+    # X = np.array([1, 2, 3, 4, 5])
+    # y = np.array([4.2, 3.5, 3.0, 3.4, 2.0])
 
     # X = np.array([20, 25, 27, 29, 35, 38, 40])
     # y = np.array([83, 90, 93, 95, 99, 110, 120])
@@ -28,7 +28,8 @@ if __name__ == "__main__":
 
     _, n = X.shape
 
-    theta = np.zeros((n, 1))
+    theta = np.zeros((n,))
+
     print(theta)
 
     t = batch_gradient_descent(X, y, theta)
