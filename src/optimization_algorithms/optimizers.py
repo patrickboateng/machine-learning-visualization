@@ -46,7 +46,7 @@ def batch_gradient_descent(
 ):
     m = len(y)
     step_size = alpha / m
-    num_of_features, _ = theta.shape
+    num_of_features = len(theta)
 
     for _ in range(num_iters):
         temp_theta = copy.deepcopy(theta)
@@ -60,14 +60,13 @@ def batch_gradient_descent(
                     theta,
                     m,
                     j,
-                    lambda x, theta: np.round((x @ theta).flatten(), decimals=4)[0],
+                    lambda x, theta: np.dot(x, theta),
                 )
             )
 
         theta = copy.deepcopy(temp_theta)
         predictions = (X @ theta).transpose().flatten()  # m
         cost = mean_squared_error(predictions, y, m)
-        print(theta)
         print(cost)
 
     return theta
