@@ -2,9 +2,9 @@
 
 ![](assets/header.png)
 
-> Visualization of various machine learning algorithms.
+Demonstrate how various machine learning optimization algorithms work by providing graphical displays.
 
-Long project description here.
+working on long description here.
 
 > **Note**
 > The application has not been shipped yet so the installation command will not work
