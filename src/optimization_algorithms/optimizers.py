@@ -31,14 +31,32 @@ def mean_squared_error(
     return sum_squared_error / total_training_egs
 
 
-def gradient(X: np.array, y: np.array, theta: np.array, m: int, j: int, func):
+# def gradient(X: np.array, y: np.array, theta: np.array, m: int, j: int, func):
+#     sum_error = 0
 
-    sum_error = 0
+#     for i in range(m):
+#         error = (func(X[i], theta) - y[i]) * X[i][j]
+#         sum_error += error
 
-    for i in range(m):
-        sum_error += (func(X[i], theta) - y[i]) * X[i][j]
+#     print(sum_error)
 
-    return sum_error
+#     return sum_error
+
+
+def mse_gradient(X, y, theta, m, func):
+    errors = []
+    num_of_features = len(theta)
+
+    for j in range(num_of_features):
+        sum_error = 0
+        for i in range(m):
+            error = func(X[i], theta) - y[i]
+            error *= X[i][j]
+            sum_error += error
+
+        errors.append(sum_error)
+
+    return np.array(errors)
 
 
 def batch_gradient_descent(
@@ -46,27 +64,49 @@ def batch_gradient_descent(
 ):
     m = len(y)
     step_size = alpha / m
-    num_of_features = len(theta)
+    # num_of_features = len(theta)
 
     for _ in range(num_iters):
         temp_theta = copy.deepcopy(theta)
 
-        for j in range(num_of_features):
-            temp_theta[j] = temp_theta[j] - (
-                step_size
-                * gradient(
-                    X,
-                    y,
-                    theta,
-                    m,
-                    j,
-                    lambda x, theta: np.dot(x, theta),
-                )
-            )
+        temp_theta = temp_theta - step_size * mse_gradient(
+            X, y, theta, m, lambda x, theta: np.dot(x, theta)
+        )
 
         theta = copy.deepcopy(temp_theta)
         predictions = (X @ theta).transpose().flatten()  # m
         cost = mean_squared_error(predictions, y, m)
-        print(cost)
+        # print(cost)
 
     return theta
+
+
+# def batch_gradient_descent(
+#     X: np.array, y: np.array, theta: np.array, alpha: float = 0.01, num_iters=3500
+# ):
+#     m = len(y)
+#     step_size = alpha / m
+#     num_of_features = len(theta)
+
+#     for _ in range(num_iters):
+#         temp_theta = copy.deepcopy(theta)
+
+#         for j in range(num_of_features):
+#             temp_theta[j] = temp_theta[j] - (
+#                 step_size
+#                 * gradient(
+#                     X,
+#                     y,
+#                     theta,
+#                     m,
+#                     j,
+#                     lambda x, theta: np.dot(x, theta),
+#                 )
+#             )
+
+#         theta = copy.deepcopy(temp_theta)
+#         predictions = (X @ theta).transpose().flatten()  # m
+#         cost = mean_squared_error(predictions, y, m)
+#         # print(cost)
+
+#     return theta
