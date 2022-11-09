@@ -1,6 +1,6 @@
 import numpy as np
 
-from optimization_algorithms.optimizers import batch_gradient_descent, mse_gradient
+from optimization_algorithms.optimizers import batch_gradient_descent
 
 
 if __name__ == "__main__":
@@ -24,15 +24,13 @@ if __name__ == "__main__":
 
     coefficient_of_constant = np.ones((m, 1))
 
-    X = np.hstack((coefficient_of_constant, X))
+    X = np.c_[coefficient_of_constant, X]
 
     _, n = X.shape
 
     theta = np.zeros((n,))
 
     print(theta)
-
-    print(mse_gradient(X, y, theta, len(y), lambda x, theta: np.dot(x, theta)))
 
     t = batch_gradient_descent(X, y, theta)
     print(t)
