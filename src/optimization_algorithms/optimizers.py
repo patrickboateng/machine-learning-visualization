@@ -1,56 +1,51 @@
 import copy
-import math
 
 import numpy as np
 
+from .errors import InconsistentLengthError
 
-def mean_squared_error(
-    y_pred: np.array, y_true: np.array, total_training_egs: int = None
-) -> float:
+
+def mean_squared_error(y_pred: np.array, y_true: np.array) -> float:
     """Calculates the mean squared error.
 
     Args:
         y_pred: the predicted values from the model.
-        y_true: the actual values from the datasets.
-        total_training_egs: the number of training examples in the datasets.
+        y_true: the actual values from the dataset.
 
     Returns:
         float: mean squared error.
 
     """
 
-    if total_training_egs is None:
-        total_training_egs = len(y_pred)
+    errors = np.subtract(y_pred, y_true)
+    errors_squared = np.square(errors)
 
-    sum_squared_error = 0
-
-    for actual, guess in zip(y_true, y_pred):
-        error_squared = math.pow((actual - guess), 2)
-        sum_squared_error += error_squared
-
-    return sum_squared_error / total_training_egs
+    return np.mean(errors_squared)
 
 
-# def gradient(X: np.array, y: np.array, theta: np.array, m: int, j: int, func):
-#     sum_error = 0
+def mse_gradient(
+    X: np.array, y: np.array, theta: np.array, m: int, num_of_features: int, func
+) -> np.array:
+    """Calculates the gradient for each feature
 
-#     for i in range(m):
-#         error = (func(X[i], theta) - y[i]) * X[i][j]
-#         sum_error += error
+    Args:
+        X: total number of feature examples
+        y: total number of label examples
+        theta: weights of the model
+        m: number of training examples
+        num_of_features: number of features
+        func: hypothesis function
 
-#     print(sum_error)
+    Returns:
+        np.array: an array of feature gradients
+    """
 
-#     return sum_error
-
-
-def mse_gradient(X, y, theta, m, func):
-    errors = []
-    num_of_features = len(theta)
+    errors: list[float] = []
 
     for j in range(num_of_features):
-        sum_error = 0
+        sum_error: float = 0.0
         for i in range(m):
-            error = func(X[i], theta) - y[i]
+            error: float = func(X[i], theta) - y[i]
             error *= X[i][j]
             sum_error += error
 
@@ -61,52 +56,43 @@ def mse_gradient(X, y, theta, m, func):
 
 def batch_gradient_descent(
     X: np.array, y: np.array, theta: np.array, alpha: float = 0.01, num_iters=3500
-):
-    m = len(y)
-    step_size = alpha / m
-    # num_of_features = len(theta)
+) -> np.array:
+    """Batch gradient descent implementation
+
+    Args:
+        X: total number of feature examples
+        y: total number of label examples
+        theta: initial weights of the model
+        alpha: learning rate
+        num_iters: number of times to repeat the algorithm
+
+    Returns:
+        np.array: calculated weights of the model
+
+    Raises:
+        InconsistentLengthError: when the lengths of X and y are not equal
+
+    """
+
+    if len(X) != len(y):
+        raise InconsistentLengthError(
+            f"Length of feature and label variables are not equal: features={len(X)} label={len(y)}"
+        )
+
+    m: int = len(y)
+    step_size: float = alpha / m
+    num_of_features: int = len(theta)
 
     for _ in range(num_iters):
         temp_theta = copy.deepcopy(theta)
 
         temp_theta = temp_theta - step_size * mse_gradient(
-            X, y, theta, m, lambda x, theta: np.dot(x, theta)
+            X, y, theta, m, num_of_features, lambda x, theta: np.dot(x, theta)
         )
 
         theta = copy.deepcopy(temp_theta)
-        predictions = (X @ theta).transpose().flatten()  # m
-        cost = mean_squared_error(predictions, y, m)
+        # predictions: np.array = (X @ theta).transpose().flatten()  # m
+        # cost: float = mean_squared_error(predictions, y)
         # print(cost)
 
     return theta
-
-
-# def batch_gradient_descent(
-#     X: np.array, y: np.array, theta: np.array, alpha: float = 0.01, num_iters=3500
-# ):
-#     m = len(y)
-#     step_size = alpha / m
-#     num_of_features = len(theta)
-
-#     for _ in range(num_iters):
-#         temp_theta = copy.deepcopy(theta)
-
-#         for j in range(num_of_features):
-#             temp_theta[j] = temp_theta[j] - (
-#                 step_size
-#                 * gradient(
-#                     X,
-#                     y,
-#                     theta,
-#                     m,
-#                     j,
-#                     lambda x, theta: np.dot(x, theta),
-#                 )
-#             )
-
-#         theta = copy.deepcopy(temp_theta)
-#         predictions = (X @ theta).transpose().flatten()  # m
-#         cost = mean_squared_error(predictions, y, m)
-#         # print(cost)
-
-#     return theta
