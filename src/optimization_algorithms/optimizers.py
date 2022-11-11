@@ -1,8 +1,50 @@
 import copy
+from typing import Union
 
 import numpy as np
 
 from .errors import InconsistentLengthError
+
+
+def check_dimension(X, y) -> int:
+    """Checks the dimension of the feature and label variable.
+
+    Args:
+        X: total number of feature examples
+        y: total number of label examples
+
+    Raises:
+        InconsistentLengthError: when the lengths of X and y are not equal
+    """
+    X_len: int = len(X)
+    y_len: int = len(y)
+
+    if X_len != y_len:
+        raise InconsistentLengthError(
+            f"Length of feature and label variables are not equal: features={X_len} label={y_len}"
+        )
+
+    return X_len
+
+
+def transform(X: np.array) -> np.array:
+    """Adds the coefficient of the constant parameter (y-intercept)
+
+    Args:
+        X: total number of feature examples
+
+    Returns:
+        np.array: X with the coefficient of the constant parameter added
+    """
+
+    if X.ndim == 1:
+        X = X.reshape(-1, 1)
+
+    m: int = len(X)
+
+    coefficient_of_constant: np.array = np.ones((m, 1))
+
+    return np.c_[coefficient_of_constant, X]
 
 
 def mean_squared_error(y_pred: np.array, y_true: np.array) -> float:
@@ -55,7 +97,11 @@ def mse_gradient(
 
 
 def batch_gradient_descent(
-    X: np.array, y: np.array, theta: np.array, alpha: float = 0.01, num_iters=3500
+    X: np.array,
+    y: np.array,
+    theta: Union[np.array, None] = None,
+    alpha: float = 0.01,
+    num_iters=3500,
 ) -> np.array:
     """Batch gradient descent implementation
 
@@ -74,14 +120,15 @@ def batch_gradient_descent(
 
     """
 
-    if len(X) != len(y):
-        raise InconsistentLengthError(
-            f"Length of feature and label variables are not equal: features={len(X)} label={len(y)}"
-        )
-
-    m: int = len(y)
+    m = check_dimension(X, y)
+    X = transform(X)
     step_size: float = alpha / m
-    num_of_features: int = len(theta)
+
+    if theta is not None:
+        num_of_features: int = len(theta)
+    else:
+        _, num_of_features = X.shape
+        theta = np.zeros((num_of_features,))
 
     for _ in range(num_iters):
         temp_theta = copy.deepcopy(theta)
@@ -96,3 +143,21 @@ def batch_gradient_descent(
         # print(cost)
 
     return theta
+
+
+def normal_eqn(X: np.array, y: np.array) -> np.array:
+    """Computes the weights of the model using Normal
+        Equation method.
+
+    Args:
+        X: total number of feature examples
+        y: total number of label examples
+
+    Returns:
+        np.array: weights of the model
+    """
+
+    check_dimension(X, y)
+    X = transform(X)
+
+    return np.linalg.pinv(X.transpose() @ X) @ X.transpose() @ y
