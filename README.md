@@ -4,24 +4,24 @@
 
 Demonstrate how various machine learning optimization algorithms work by providing graphical displays.
 
-working on long description here.
+working on long description.
 
 > **Note**
-> The application has not been shipped yet so the installation command will not work
+> The application is under development
 
 ## Installation
 
-OS X & Linux:
+<!-- OS X & Linux: -->
 
-```sh
-pip3 install mlv
-```
+<!-- ```sh -->
+<!-- pip3 install mlv -->
+<!-- ``` -->
 
-Windows:
+<!-- Windows: -->
 
-```sh
-pip install mlv
-```
+<!-- ```sh -->
+<!-- pip install mlv -->
+<!-- ``` -->
 
 ## Usage example
 
