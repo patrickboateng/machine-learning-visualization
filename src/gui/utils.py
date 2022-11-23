@@ -1,4 +1,6 @@
 import wx
+import wx.grid
+import wx.lib.scrolledpanel
 from wx.lib.mixins.listctrl import ListRowHighlighter, ListCtrlAutoWidthMixin
 
 
@@ -30,7 +32,7 @@ class ListCtrlComboPopup(wx.ComboPopup):
 
     # Create the popup child control.  Return true for success.
     def Create(self, parent):
-        self.lc = wx.ListCtrl(parent, *self.args, **self.kw)
+        self.lc = ListCtrl(parent, *self.args, **self.kw)
         # self.lc = wx.ListCtrl(
         #     parent, style=wx.LC_LIST | wx.LC_SINGLE_SEL | wx.SIMPLE_BORDER
         # )
@@ -98,9 +100,30 @@ class ListCtrlComboPopup(wx.ComboPopup):
 
 class ComboCtrl(wx.ComboCtrl):
     def __init__(self, *args, **kw):
-        super().__init__(*args, **kw)
+        super().__init__(*args, size=(170, 35), style=wx.CB_READONLY, **kw)
 
     def setUp(self, *args, **kw):
         """Setups the PopUp Control"""
         self.popUpCtrl = ListCtrlComboPopup(*args, **kw)
         self.SetPopupControl(self.popUpCtrl)
+
+
+class DataGrid(wx.lib.scrolledpanel.ScrolledPanel):
+    def __init__(
+        self,
+        parent,
+        id=-1,
+        pos=wx.DefaultPosition,
+        size=wx.DefaultSize,
+        style=wx.TAB_TRAVERSAL,
+        name="scrolledpanel",
+    ):
+        super().__init__(parent, id, pos, size, style, name)
+
+        sizer = wx.BoxSizer(orient=wx.VERTICAL)
+        self.dataDisp = wx.grid.Grid(self)
+        self.dataDisp.CreateGrid(100, 50)
+        sizer.Add(self.dataDisp, 1, wx.EXPAND)
+
+        self.SetSizer(sizer)
+        self.SetupScrolling()
