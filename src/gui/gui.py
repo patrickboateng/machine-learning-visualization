@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import wx
+import wx.grid
 from ObjectListView import ObjectListView, ColumnDefn
 
 from . import utils
@@ -14,12 +15,11 @@ class Application(wx.App):
     def OnInit(self):
         window = MainWindow(None, title="MLV", size=(700, 500))
         self.SetTopWindow(window)
-        window.Show()
 
         return True
 
 
-class Features:
+class Feature:
     __slots__ = "name", "dataType"
 
     def __init__(self, name, dataType) -> None:
@@ -42,6 +42,8 @@ class MainWindow(wx.Frame):
         self.init()
 
         self.Center()
+
+        self.Show()
 
     def init(self):
         self.toolBar = self.CreateToolBar()
@@ -76,34 +78,20 @@ class MainPanel(wx.Panel):
         # hSizer.Add(self.browseBtn, flag=wx.TOP, border=10)
         # hSizer.Add(self.viewDataBtn, flag=wx.TOP | wx.RIGHT, border=10)
 
-        costFunction = wx.StaticText(self, label="Cost Function")
-        self.costFunctionCtrl = utils.ComboCtrl(self, size=(170, 35))
+        costFunction = wx.StaticText(self, label="Cost Function, J(\u03B8)")
+        self.costFunctionCtrl = utils.ComboCtrl(self)
         self.costFunctionCtrl.setUp()
 
         mlAlg = wx.StaticText(self, label="Machine Learning Algorithm")
-        self.mlAlgoCtrl = utils.ComboCtrl(self, size=(170, 35))
+        self.mlAlgoCtrl = utils.ComboCtrl(self)
         self.mlAlgoCtrl.setUp()
 
         optAlg = wx.StaticText(self, label="Optimization Algorithm")
-        self.optAlgCtrl = utils.ComboCtrl(self, size=(170, 35))
+        self.optAlgCtrl = utils.ComboCtrl(self)
         self.optAlgCtrl.setUp()
 
-        learningRate = wx.StaticText(self, label="Learning Rate")
+        learningRate = wx.StaticText(self, label="Learning Rate, \u03B1")
         self.learningRateCtrl = wx.TextCtrl(self, size=(170, 35))
-
-        flxGrd = wx.FlexGridSizer(rows=4, cols=2, vgap=20, hgap=10)
-        flxGrd.Add(costFunction)
-        flxGrd.Add(self.costFunctionCtrl)
-        flxGrd.Add(mlAlg)
-        flxGrd.Add(self.mlAlgoCtrl)
-        flxGrd.Add(optAlg)
-        flxGrd.Add(self.optAlgCtrl)
-        flxGrd.Add(learningRate)
-        flxGrd.Add(self.learningRateCtrl)
-
-        self.dataDisp = ObjectListView(self, style=wx.LC_REPORT)
-        self.dataDisp.SetColumns([])
-        self.dataDisp.SetEmptyListMsg("No Data-Set Selected")
 
         self.featureDisp = ObjectListView(self, style=wx.LC_REPORT)
         self.featureDisp.SetColumns(
@@ -129,21 +117,45 @@ class MainPanel(wx.Panel):
         )
         self.labelDisp.SetEmptyListMsg("No Label Added")
 
-        v2Sizer = wx.BoxSizer(orient=wx.VERTICAL)
-        v2Sizer.Add(self.dataDisp, proportion=1, flag=wx.EXPAND, border=10)
+        paramLayout = wx.FlexGridSizer(rows=5, cols=2, vgap=20, hgap=10)
+        paramLayout.Add(costFunction)
+        paramLayout.Add(self.costFunctionCtrl, flag=wx.EXPAND)
+        paramLayout.Add(mlAlg)
+        paramLayout.Add(self.mlAlgoCtrl, flag=wx.EXPAND)
+        paramLayout.Add(optAlg)
+        paramLayout.Add(self.optAlgCtrl, flag=wx.EXPAND)
+        paramLayout.Add(learningRate)
+        paramLayout.Add(self.learningRateCtrl, flag=wx.EXPAND)
+        paramLayout.Add(self.featureDisp, flag=wx.EXPAND)
+        paramLayout.Add(self.labelDisp, flag=wx.EXPAND)
+
+        paramLayout.AddGrowableRow(4, proportion=1)
+        paramLayout.AddGrowableCol(0, proportion=1)
+        paramLayout.AddGrowableCol(1, proportion=1)
+
+        self.dataDisp = utils.DataGrid(self)
 
         hSizer = wx.BoxSizer(orient=wx.HORIZONTAL)
-        hSizer.Add(self.featureDisp, proportion=1, flag=wx.RIGHT | wx.EXPAND, border=5)
-        hSizer.Add(self.labelDisp, proportion=1, flag=wx.EXPAND)
-        v2Sizer.Add(hSizer, proportion=1, flag=wx.TOP | wx.EXPAND, border=10)
-
-        h2Sizer = wx.BoxSizer(orient=wx.HORIZONTAL)
-        h2Sizer.Add(flxGrd, flag=wx.TOP | wx.RIGHT | wx.LEFT, border=10)
-        h2Sizer.Add(
-            v2Sizer,
-            proportion=1,
-            flag=wx.TOP | wx.RIGHT | wx.BOTTOM | wx.EXPAND,
+        hSizer.Add(
+            paramLayout,
+            flag=wx.TOP | wx.RIGHT | wx.LEFT | wx.EXPAND | wx.BOTTOM,
             border=10,
         )
+        hSizer.Add(self.dataDisp, proportion=1, flag=wx.TOP | wx.EXPAND, border=10)
 
-        self.SetSizer(h2Sizer)
+        # paramFLSizer.Add(self.dataDisp, proportion=1, flag=wx.EXPAND, border=10)
+        # paramFLSizer.Add(dataDisp, proportion=1, flag=wx.EXPAND, border=10)
+
+        # hSizer.Add(self.featureDisp, proportion=1, flag=wx.RIGHT | wx.EXPAND, border=5)
+        # hSizer.Add(self.labelDisp, proportion=1, flag=wx.EXPAND)
+
+        # h2Sizer = wx.BoxSizer(orient=wx.HORIZONTAL)
+        # h2Sizer.Add(paramLayout, flag=wx.TOP | wx.RIGHT | wx.LEFT, border=10)
+        # h2Sizer.Add(
+        #     paramFLSizer,
+        #     proportion=1,
+        #     flag=wx.TOP | wx.RIGHT | wx.BOTTOM | wx.EXPAND,
+        #     border=10,
+        # )
+
+        self.SetSizer(hSizer)
