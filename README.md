@@ -1,5 +1,12 @@
 # Machine Learning Visualization
 
+<figure>
+  <img src="assets/header.png" alt="app-interface">
+  <figcaption>This is the initial interface of the application and it is subject to change. <br>
+  All ideas concerning the interface are welcomed.
+  </figcaption>
+</figure>
+
 ![](assets/header.png)
 
 Demonstrate how various machine learning optimization algorithms work by providing graphical displays.
