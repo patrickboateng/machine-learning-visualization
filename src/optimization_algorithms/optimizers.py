@@ -138,9 +138,11 @@ def batch_gradient_descent(
         )
 
         theta = copy.deepcopy(temp_theta)
+
         # predictions: np.array = (X @ theta).transpose().flatten()  # m
         # cost: float = mean_squared_error(predictions, y)
-        # print(cost)
+
+        # Add early stopping criteria
 
     return theta
 
