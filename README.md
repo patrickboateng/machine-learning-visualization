@@ -7,8 +7,6 @@
   </figcaption>
 </figure>
 
-![](assets/header.png)
-
 Demonstrate how various machine learning optimization algorithms work by providing graphical displays.
 
 working on long description.
