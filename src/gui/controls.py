@@ -1,126 +1,46 @@
-import attrs
 import wx
 import wx.grid
 import wx.lib.scrolledpanel
+import wx.lib.mixins.gridlabelrenderer as glr
 from wx.lib.mixins.listctrl import ListRowHighlighter, ListCtrlAutoWidthMixin
 
 
-@attrs.define(slots=True, frozen=True)
-class F:
-    """A feature Object"""
-
-    name: str = attrs.field()
-
-
-@attrs.define(slots=True, frozen=True)
-class L:
-    """A Label Object"""
-
-    name: str = attrs.field()
-
-
-class ListCtrl(wx.ListCtrl, ListRowHighlighter, ListCtrlAutoWidthMixin):
+class Grid(wx.grid.Grid, glr.GridWithLabelRenderersMixin):
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
-
-        ListRowHighlighter.__init__(self)
-        ListCtrlAutoWidthMixin.__init__(self)
-
-        self.InsertColumn(0, "")
+        glr.GridWithLabelRenderersMixin.__init__(self)
 
 
-class ListCtrlComboPopup(wx.ComboPopup):
-    def __init__(self, *args, **kw):
-        super().__init__()
-        self.args = args
-        self.kw = kw
+class ColumnRenderer(glr.GridLabelRenderer):
+    # def __init__(self, bgColor) -> None:
+    #     self.bgColor = bgColor
 
-    # The following methods are those that are overridable from the
-    # ComboPopup base class.  Most of them are not required, but all
-    # are shown here for demonstration purposes.
+    def Draw(self, grid, dc, rect, col):
+        # dc.SetBrush(wx.Brush(self.bgColor))
+        # dc.SetPen(wx.TRANSPARENT_PEN)
+        dc.DrawRectangle(rect)
 
-    # This is called immediately after construction finishes.  You can
-    # use self.GetCombo if needed to get to the ComboCtrl instance.
-    def Init(self):
-        self.value = -1
-        self.curitem = -1
+        hAlign, vAlign = grid.GetColLabelAlignment()
+        text = grid.GetColLabelValue(col)
 
-    # Create the popup child control.  Return true for success.
-    def Create(self, parent):
-        self.lc = ListCtrl(parent, *self.args, **self.kw)
-        # self.lc = wx.ListCtrl(
-        #     parent, style=wx.LC_LIST | wx.LC_SINGLE_SEL | wx.SIMPLE_BORDER
-        # )
-        # self.lc.Bind(wx.EVT_MOTION, self.OnMotion)
-        # self.lc.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
-        return True
-
-    # Return the widget that is to be used for the popup
-    def GetControl(self):
-        return self.lc
-
-    # Called just prior to displaying the popup, you can use it to
-    # 'select' the current item.
-    def SetStringValue(self, val):
-        idx = self.lc.FindItem(-1, val)
-        if idx != wx.NOT_FOUND:
-            self.lc.Select(idx)
-
-    # Return a string representation of the current item.
-    def GetStringValue(self):
-        if self.value >= 0:
-            return self.lc.GetItemText(self.value)
-        return ""
-
-    # Called immediately after the popup is shown
-    def OnPopup(self):
-        wx.ComboPopup.OnPopup(self)
-
-    # Called when popup is dismissed
-    def OnDismiss(self):
-        wx.ComboPopup.OnDismiss(self)
-
-    # This is called to custom paint in the combo control itself
-    # (ie. not the popup).  Default implementation draws value as
-    # string.
-    def PaintComboControl(self, dc, rect):
-        wx.ComboPopup.PaintComboControl(self, dc, rect)
-
-    # Receives key events from the parent ComboCtrl.  Events not
-    # handled should be skipped, as usual.
-    def OnComboKeyEvent(self, event):
-        wx.ComboPopup.OnComboKeyEvent(self, event)
-
-    # Implement if you need to support special action when user
-    # double-clicks on the parent wxComboCtrl.
-    def OnComboDoubleClick(self):
-        wx.ComboPopup.OnComboDoubleClick(self)
-
-    # Return final size of popup. Called on every popup, just prior to OnPopup.
-    # minWidth = preferred minimum width for window
-    # prefHeight = preferred height. Only applies if > 0,
-    # maxHeight = max height for window, as limited by screen size
-    #   and should only be rounded down, if necessary.
-    def GetAdjustedSize(self, minWidth, prefHeight, maxHeight):
-        return wx.ComboPopup.GetAdjustedSize(self, minWidth, prefHeight, maxHeight)
-
-    # Return true if you want delay the call to Create until the popup
-    # is shown for the first time. It is more efficient, but note that
-    # it is often more convenient to have the control created
-    # immediately.
-    # Default returns false.
-    def LazyCreate(self):
-        return wx.ComboPopup.LazyCreate(self)
+        self.DrawBorder(grid, dc, rect)
+        self.DrawText(grid, dc, rect, text, hAlign, vAlign)
 
 
-class ComboCtrl(wx.ComboCtrl):
-    def __init__(self, *args, **kw):
-        super().__init__(*args, size=(170, 35), style=wx.CB_READONLY, **kw)
+class RowRenderer(glr.GridLabelRenderer):
+    # def __init__(self, bgColor) -> None:
+    #     self.bgColor = bgColor
 
-    def setUp(self, *args, **kw):
-        """Setups the PopUp Control"""
-        self.popUpCtrl = ListCtrlComboPopup(*args, **kw)
-        self.SetPopupControl(self.popUpCtrl)
+    def Draw(self, grid, dc, rect, row):
+        # dc.SetBrush(wx.Brush(self.bgColor))
+        # dc.SetPen(wx.TRANSPARENT_PEN)
+        dc.DrawRectangle(rect)
+
+        hAlign, vAlign = grid.GetColLabelAlignment()
+        text = grid.GetRowLabelValue(row)
+
+        self.DrawBorder(grid, dc, rect)
+        self.DrawText(grid, dc, rect, text, hAlign, vAlign)
 
 
 class DataGrid(wx.lib.scrolledpanel.ScrolledPanel):
@@ -135,9 +55,24 @@ class DataGrid(wx.lib.scrolledpanel.ScrolledPanel):
     ):
         super().__init__(parent, id, pos, size, style, name)
 
-        sizer = wx.BoxSizer(orient=wx.VERTICAL)
-        self.dataDisp = wx.grid.Grid(self)
+        self.labelBgColor = "#202227"
+
+        self.dataDisp = Grid(self)
         self.dataDisp.CreateGrid(100, 50)
+        self.dataDisp.SetDefaultColSize(width=60, resizeExistingCols=True)
+        self.dataDisp.SetDefaultRowSize(height=40, resizeExistingRows=True)
+
+        pen = self.dataDisp.GetDefaultGridLinePen()
+        pen.SetColour("#ff0000")
+        self.dataDisp.ForceRefresh()
+
+        # for col in range(self.dataDisp.GetNumberCols()):
+        #     self.dataDisp.SetColLabelRenderer(col, ColumnRenderer())
+
+        # for row in range(self.dataDisp.GetNumberRows()):
+        #     self.dataDisp.SetRowLabelRenderer(row, RowRenderer())
+
+        sizer = wx.BoxSizer(orient=wx.VERTICAL)
         sizer.Add(self.dataDisp, 1, wx.EXPAND)
 
         self.SetSizer(sizer)
