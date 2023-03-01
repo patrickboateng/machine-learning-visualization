@@ -1,20 +1,13 @@
-# Machine Learning Visualization
+# Machine Learning Visualization for Microsoft Excel
 
-<figure>
-  <img src="assets/header.png" alt="app-interface">
-  <figcaption>This is the initial interface of the application and it is subject to change. <br>
-  All ideas concerning the interface are welcomed.
-  </figcaption>
-</figure>
+Demonstrate how various machine learning optimization algorithms work by providing graphical displays in **Microsoft Excel**
 
-Demonstrate how various machine learning optimization algorithms work by providing graphical displays.
-
-working on long description.
-
-> **Note**
+> **Note: **
 > The application is under development
 
 ## Installation
+
+_Program under Development_
 
 <!-- OS X & Linux: -->
 
@@ -28,15 +21,15 @@ working on long description.
 <!-- pip install mlv -->
 <!-- ``` -->
 
-## Usage example
+<!-- ## Usage example -->
 
-## Links
+<!-- ## Links -->
 
-## DEVELOPMENT SETUP
+<!-- ## DEVELOPMENT SETUP -->
 
 ## RELEASE HISTORY
 
 - 0.0.1
   - Work in progress
 
-## CONTRIBUTING
+<!-- ## CONTRIBUTING -->
